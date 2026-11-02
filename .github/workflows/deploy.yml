@@ -25,13 +25,12 @@ jobs:
           push: true
           tags: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
 
-      - name: Deploy to Azure Container App
-        uses: azure/container-apps-deploy-action@v1
+      - name: Azure CLI Login and Update Container App
+        uses: azure/CLI@v1
         with:
-          imageToDeploy: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
-          resourceGroup: cpsy300-nova-rg
-          containerAppName: cpsy300-nova-app
-          targetPort: 3000
-          acrName: cpsy300novacr
-          acrUsername: ${{ secrets.REGISTRY_USERNAME }}
-          acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
+          inlineScript: |
+            az login --service-principal -u "${{ secrets.REGISTRY_USERNAME }}" -p "${{ secrets.REGISTRY_PASSWORD }}" --tenant "${{ secrets.AZURE_TENANT_ID }}" || az login --allow-no-subscriptions
+            az containerapp update \
+              --name cpsy300-nova-app \
+              --resource-group cpsy300-nova-rg \
+              --image cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
