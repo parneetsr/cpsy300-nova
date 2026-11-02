@@ -1,0 +1,35 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: cpsy300novacr.azurecr.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push container image to ACR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
+
+      - name: Deploy to Azure Container App via CLI
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az containerapp update \
+              --name cpsy300-nova-app \
+              --resource-group cpsy300-nova-rg \
+              --image cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
