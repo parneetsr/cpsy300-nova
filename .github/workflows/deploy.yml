@@ -25,11 +25,6 @@ jobs:
           push: true
           tags: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
 
-      - name: Azure Login via ACR Credentials
-        uses: azure/login@v1
-        with:
-          creds: '{"clientId":"${{ secrets.REGISTRY_USERNAME }}","clientSecret":"${{ secrets.REGISTRY_PASSWORD }}","subscriptionId":"","tenantId":""}'
-
       - name: Deploy to Azure Container App
         uses: azure/container-apps-deploy-action@v1
         with:
