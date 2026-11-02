@@ -1,9 +1,14 @@
+
 name: Build and deploy
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
 
 env:
   ACR_NAME: cpsy300novacr
@@ -13,9 +18,17 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Login to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Log in to ACR
         uses: azure/docker-login@v1
@@ -24,12 +37,11 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and push container image to ACR
+      - name: Build and push container image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push:
-            true
+          push: true
           tags: ${{ env.ACR_NAME }}.azurecr.io/cpsy300-nova:${{ github.sha }}
 
       - name: Update Azure Container App
