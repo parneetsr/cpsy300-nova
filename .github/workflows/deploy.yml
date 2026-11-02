@@ -1,33 +1,18 @@
-name: Deploy to Azure Container Apps 
-on:
-  push:
-    branches: [ main ] 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Log in to ACR
-        uses: azure/docker-login@v1
-        with:
-          login-server: cpsy300novacr.azurecr.io
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - name: Build and push container image to ACR
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
-      - name: Deploy to Azure Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: cpsy300novacr.azurecr.io/cpsy300-nova:${{ github.sha }}
-          resourceGroup: cpsy300-nova-rg
-          containerAppName: cpsy300-nova-app
-          targetPort: 3000
-          acrName: cpsy300novacr
-          acrUsername: ${{ secrets.REGISTRY_USERNAME }}
-          acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
- 
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
+
+  # ADD THIS LOGIN STEP:
+  - name: Azure Login
+    uses: azure/login@v2
+    with:
+      creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # Alternatively, if using OIDC federation:
+      # client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  - name: Deploy to Azure Container App
+    uses: azure/container-apps-deploy-action@v1
+    with:
+      # your existing parameters...
